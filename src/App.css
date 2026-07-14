@@ -1,0 +1,343 @@
+:root {
+  --color-bg: #f4f9ee;
+  --color-surface: #ffffff;
+  --color-border: #dce8cf;
+  --color-text: #3d4a35;
+  --color-text-sub: #7d8a72;
+  --color-accent: #e8788a;
+  --color-coin: #d9a514;
+  --color-common: #b9c7a8;
+  --color-rare: #7fa8d9;
+  --color-epic: #c98add;
+  font-family: 'Hiragino Maru Gothic ProN', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.app__title {
+  margin: 0 0 12px;
+  font-size: 1.6rem;
+  text-align: center;
+}
+
+.app__main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.app__column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+@media (max-width: 720px) {
+  .app__main {
+    grid-template-columns: 1fr;
+  }
+}
+
+section,
+.resource-display {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+h2 {
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* ---- 資源表示 ---- */
+
+.resource-display {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.resource-display__coins {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--color-coin);
+}
+
+.resource-display__rate {
+  color: var(--color-text-sub);
+  font-size: 0.95rem;
+}
+
+.resource-display__bonus {
+  margin-left: 6px;
+  color: var(--color-accent);
+}
+
+.resource-display__tap {
+  margin-left: auto;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-coin);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  transition: transform 0.05s;
+}
+
+.resource-display__tap:active {
+  transform: scale(0.94);
+}
+
+/* ---- 施設一覧 ---- */
+
+.building-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.building-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+}
+
+.building-row__icon {
+  font-size: 1.6rem;
+}
+
+.building-row__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.building-row__name {
+  font-weight: 700;
+}
+
+.building-row__level {
+  margin-left: 4px;
+  color: var(--color-text-sub);
+  font-weight: 400;
+  font-size: 0.9rem;
+}
+
+.building-row__effect {
+  font-size: 0.85rem;
+  color: var(--color-text-sub);
+}
+
+.building-row__upgrade {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  background: var(--color-accent);
+  color: #fff;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ---- 牧場フィールド ---- */
+
+.pig-field__chance {
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--color-text-sub);
+}
+
+.pig-field__area {
+  position: relative;
+  height: 180px;
+  border-radius: 10px;
+  background: linear-gradient(#d9ecc2, #c6e3ab);
+  overflow: hidden;
+}
+
+.pig-field__empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  color: var(--color-text-sub);
+  font-size: 0.9rem;
+}
+
+.pig-field__pig {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: 2.4rem;
+  background: none;
+  border: none;
+  padding: 6px;
+  border-radius: 50%;
+  animation: pig-wiggle 0.8s ease-in-out infinite alternate;
+}
+
+.pig-field__pig--rare {
+  filter: drop-shadow(0 0 6px var(--color-rare));
+}
+
+.pig-field__pig--epic {
+  filter: drop-shadow(0 0 8px var(--color-epic));
+}
+
+@keyframes pig-wiggle {
+  from {
+    transform: translate(-50%, -50%) rotate(-8deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(8deg);
+  }
+}
+
+/* ---- 豚図鑑 ---- */
+
+.pig-collection__progress {
+  font-size: 0.9rem;
+  color: var(--color-text-sub);
+  font-weight: 400;
+}
+
+.pig-collection__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+}
+
+.pig-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 6px;
+  border-radius: 10px;
+  border: 2px solid var(--color-common);
+  background: #fdfdf9;
+  text-align: center;
+}
+
+.pig-card--rare {
+  border-color: var(--color-rare);
+}
+
+.pig-card--epic {
+  border-color: var(--color-epic);
+}
+
+.pig-card--unknown {
+  opacity: 0.55;
+  border-style: dashed;
+}
+
+.pig-card__emoji {
+  font-size: 1.8rem;
+}
+
+.pig-card__name {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.pig-card__rarity,
+.pig-card__meta {
+  font-size: 0.72rem;
+  color: var(--color-text-sub);
+}
+
+/* ---- モーダル ---- */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(40, 50, 30, 0.45);
+  display: grid;
+  place-items: center;
+  z-index: 10;
+}
+
+.modal {
+  background: var(--color-surface);
+  border-radius: 14px;
+  padding: 24px 28px;
+  max-width: 360px;
+  width: calc(100% - 48px);
+  text-align: center;
+}
+
+.modal h2 {
+  margin-bottom: 12px;
+}
+
+.modal button {
+  margin-top: 12px;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: #fff;
+  font-weight: 700;
+}
+
+.modal__note {
+  font-size: 0.8rem;
+  color: var(--color-text-sub);
+}
+
+/* ---- 設定 ---- */
+
+.settings-bar {
+  margin-top: 16px;
+  text-align: right;
+}
+
+.settings-bar__reset {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: var(--color-text-sub);
+  font-size: 0.8rem;
+}
