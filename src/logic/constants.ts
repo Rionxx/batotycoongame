@@ -16,6 +16,9 @@ export const COINS_PER_TAP = 1
 /** オフライン収集の精算上限(秒)= 2時間 */
 export const OFFLINE_CAP_SECONDS = 2 * 60 * 60
 
+/** これ未満の離席では復帰モーダルを出さない(瞬間リロード対策・秒) */
+export const OFFLINE_REPORT_MIN_SECONDS = 10
+
 // ---- 施設 ----
 
 export const BUILDINGS: Record<BuildingId, BuildingSpec> = {
