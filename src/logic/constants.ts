@@ -13,6 +13,9 @@ export const BASE_COINS_PER_SECOND = 1
 /** 手動タップ1回あたりの獲得コイン */
 export const COINS_PER_TAP = 1
 
+/** ゲームループのtick間隔(ms)。UIのタイマーはこれを使う */
+export const TICK_INTERVAL_MS = 1000
+
 /** オフライン収集の精算上限(秒)= 2時間 */
 export const OFFLINE_CAP_SECONDS = 2 * 60 * 60
 
