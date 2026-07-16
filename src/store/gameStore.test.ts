@@ -20,6 +20,8 @@ beforeEach(() => {
   useGameStore.setState({
     ...createInitialGameState(T0),
     activePig: null,
+    coinPickup: null,
+    coinPickupRespawnAt: Number.MAX_SAFE_INTEGER, // テスト中の勝手な再出現を防ぐ
     offlineReport: null,
     completionCelebrated: false,
     recentUnlocks: [],
@@ -63,12 +65,39 @@ describe('tick', () => {
   })
 })
 
-describe('tapCoin', () => {
-  it('タップで+1コイン', () => {
-    useGameStore.getState().tapCoin()
-    useGameStore.getState().tapCoin()
-    expect(useGameStore.getState().coins).toBe(2)
-    expect(useGameStore.getState().totalCoinsEarned).toBe(2)
+describe('コイン山', () => {
+  it('再出現時刻を過ぎたtickでコイン山が出現する', () => {
+    useGameStore.setState({ coinPickupRespawnAt: 0 })
+    setRngForTesting(fixedRng(0.9, 0.3, 0.7)) // 出現判定は走らない時刻なので座標のみ消費
+    useGameStore.getState().tick(T0 + 1000)
+    const pickup = useGameStore.getState().coinPickup
+    expect(pickup).not.toBeNull()
+    expect(pickup!.x).toBeGreaterThanOrEqual(0)
+    expect(pickup!.x).toBeLessThan(1)
+  })
+
+  it('回収でレート×8秒分を獲得し、20秒後まで再出現しない', () => {
+    useGameStore.setState({ coinPickup: { x: 0.5, y: 0.5 } })
+    useGameStore.getState().collectCoinPickup(T0 + 1000)
+    const state = useGameStore.getState()
+    expect(state.coins).toBe(8) // レート1/秒 × 8秒分
+    expect(state.coinPickup).toBeNull()
+    expect(state.coinPickupRespawnAt).toBe(T0 + 1000 + 20_000)
+  })
+
+  it('コイン山が無いときの回収は何もしない', () => {
+    useGameStore.getState().collectCoinPickup(T0 + 1000)
+    expect(useGameStore.getState().coins).toBe(0)
+  })
+
+  it('回収額にはメダル・施設のレートが反映される', () => {
+    useGameStore.setState({
+      coinPickup: { x: 0.5, y: 0.5 },
+      buildingLevels: { feedingTrough: 9, pigPen: 0, market: 0, signboard: 0 }, // レート10/秒
+      prestige: { medals: 2, count: 1 }, // ×1.1
+    })
+    useGameStore.getState().collectCoinPickup(T0 + 1000)
+    expect(useGameStore.getState().coins).toBe(88) // floor(10 × 1.1 × 8)
   })
 })
 

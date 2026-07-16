@@ -2,10 +2,9 @@ import { useGameStore } from '../store/gameStore'
 import { useCoinsPerSecond, usePigBonus } from '../store/selectors'
 import { formatCoins, formatPercent, formatRate } from './format'
 
-/** 現在のコイン数・毎秒増加量・手動タップボタン */
+/** 現在のコイン数・毎秒増加量の表示 */
 export function ResourceDisplay() {
   const coins = useGameStore((s) => s.coins)
-  const tapCoin = useGameStore((s) => s.tapCoin)
   const rate = useCoinsPerSecond()
   const pigBonus = usePigBonus()
 
@@ -25,9 +24,6 @@ export function ResourceDisplay() {
           </span>
         )}
       </div>
-      <button type="button" className="resource-display__tap" onClick={tapCoin}>
-        🪙 タップで +1
-      </button>
     </header>
   )
 }

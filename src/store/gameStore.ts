@@ -10,10 +10,15 @@ import type {
 import { ACHIEVEMENT_IDS, BUILDING_IDS, PIG_SPECIES_IDS } from '../types/game'
 import { applyPrestige, canPrestige } from '../logic/prestige'
 import {
-  COINS_PER_TAP,
+  COIN_PICKUP_RESPAWN_SECONDS,
   OFFLINE_REPORT_MIN_SECONDS,
   PIG_SPAWN_CHECK_INTERVAL_SECONDS,
 } from '../logic/constants'
+import {
+  calculateCoinPickupValue,
+  shouldRespawnCoinPickup,
+  spawnCoinPickup,
+} from '../logic/coinPickup'
 import { calculateEarnedCoins, calculateOfflineProgress, clampCoins } from '../logic/tick'
 import {
   calculateCoinsPerSecond,
@@ -120,6 +125,8 @@ export const useGameStore = create<GameStore>()(
 
       // ---- 一時状態(永続化しない) ----
       activePig: null,
+      coinPickup: null,
+      coinPickupRespawnAt: 0,
       offlineReport: null,
       completionCelebrated: false,
       recentUnlocks: [],
@@ -140,6 +147,12 @@ export const useGameStore = create<GameStore>()(
         let activePig = state.activePig
         if (activePig && isPigExpired(activePig, nowMs)) {
           activePig = null
+        }
+
+        // コイン山の再出現(回収から一定時間後)
+        let coinPickup = state.coinPickup
+        if (coinPickup === null && shouldRespawnCoinPickup(nowMs, state.coinPickupRespawnAt)) {
+          coinPickup = spawnCoinPickup(rng)
         }
 
         // 出現判定(30秒間隔・同時出現は1匹まで)
@@ -181,6 +194,7 @@ export const useGameStore = create<GameStore>()(
           lastActiveAt: nowMs,
           lastSpawnCheckAt,
           activePig,
+          coinPickup,
           achievements,
           recentUnlocks: newlyUnlocked.length
             ? [...state.recentUnlocks, ...newlyUnlocked]
@@ -188,12 +202,21 @@ export const useGameStore = create<GameStore>()(
         })
       },
 
-      tapCoin: () => {
+      collectCoinPickup: (nowMs: number) => {
         const state = get()
+        if (state.coinPickup === null) return
+        const rate = calculateCoinsPerSecond(
+          state.buildingLevels,
+          state.pigCollection,
+          state.prestige.medals,
+        )
+        const value = calculateCoinPickupValue(rate)
         set({
-          coins: clampCoins(state.coins + COINS_PER_TAP),
-          totalCoinsEarned: clampCoins(state.totalCoinsEarned + COINS_PER_TAP),
-          runCoinsEarned: clampCoins(state.runCoinsEarned + COINS_PER_TAP),
+          coinPickup: null,
+          coinPickupRespawnAt: nowMs + COIN_PICKUP_RESPAWN_SECONDS * 1000,
+          coins: clampCoins(state.coins + value),
+          totalCoinsEarned: clampCoins(state.totalCoinsEarned + value),
+          runCoinsEarned: clampCoins(state.runCoinsEarned + value),
         })
       },
 
@@ -270,6 +293,8 @@ export const useGameStore = create<GameStore>()(
         set({
           ...applyPrestige(state, nowMs),
           activePig: null,
+          coinPickup: null,
+          coinPickupRespawnAt: nowMs,
           offlineReport: null,
         })
       },
@@ -278,6 +303,8 @@ export const useGameStore = create<GameStore>()(
         set({
           ...createInitialGameState(Date.now()),
           activePig: null,
+          coinPickup: null,
+          coinPickupRespawnAt: 0,
           offlineReport: null,
           completionCelebrated: false,
           recentUnlocks: [],

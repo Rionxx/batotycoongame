@@ -2,8 +2,6 @@ import { Suspense, lazy } from 'react'
 import { useGameLoop } from './hooks/useGameLoop'
 import { AchievementPanel, AchievementToast } from './components/AchievementPanel'
 import { CompletionModal, OfflineReportModal, SettingsBar } from './components/Modals'
-import { PigCollection } from './components/PigCollection'
-import { PrestigePanel } from './components/PrestigePanel'
 import { ResourceDisplay } from './components/ResourceDisplay'
 import './App.css'
 
@@ -32,14 +30,8 @@ export default function App() {
       <Suspense fallback={<WorldLoading />}>
         <World3D />
       </Suspense>
-      <main className="app__main">
-        <div className="app__column">
-          <PrestigePanel />
-          <AchievementPanel />
-        </div>
-        <div className="app__column">
-          <PigCollection />
-        </div>
+      <main className="app__main app__main--single">
+        <AchievementPanel />
       </main>
       <SettingsBar />
       <OfflineReportModal />

@@ -18,11 +18,16 @@ import type {
 /** 施設レベル0での基本自動生成レート(コイン/秒) */
 export const BASE_COINS_PER_SECOND = 1
 
-/** 手動タップ1回あたりの獲得コイン */
-export const COINS_PER_TAP = 1
-
 /** ゲームループのtick間隔(ms)。UIのタイマーはこれを使う */
 export const TICK_INTERVAL_MS = 1000
+
+// ---- コイン山(手動収集の置き換え・フェーズ10) ----
+
+/** コイン山の回収額 = 現在レート × この秒数分 */
+export const COIN_PICKUP_RATE_SECONDS = 8
+
+/** 回収から再出現までの間隔(秒) */
+export const COIN_PICKUP_RESPAWN_SECONDS = 20
 
 /** オフライン収集の精算上限(秒)= 2時間 */
 export const OFFLINE_CAP_SECONDS = 2 * 60 * 60
