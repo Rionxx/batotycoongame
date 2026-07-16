@@ -326,6 +326,90 @@ button:disabled {
   color: var(--color-text-sub);
 }
 
+/* ---- 実績 ---- */
+
+.achievement-panel__progress {
+  font-size: 0.9rem;
+  color: var(--color-text-sub);
+  font-weight: 400;
+}
+
+.achievement-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.achievement-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  opacity: 0.55;
+}
+
+.achievement-row--unlocked {
+  opacity: 1;
+  background: #fffbe8;
+  border-color: var(--color-coin);
+}
+
+.achievement-row__badge {
+  font-size: 1.2rem;
+}
+
+.achievement-row__info {
+  display: flex;
+  flex-direction: column;
+}
+
+.achievement-row__name {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.achievement-row__desc {
+  font-size: 0.75rem;
+  color: var(--color-text-sub);
+}
+
+.achievement-toast {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 20;
+}
+
+.achievement-toast__item {
+  background: #3d4a35;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  animation: toast-in 0.25s ease-out;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* ---- 設定 ---- */
 
 .settings-bar {
