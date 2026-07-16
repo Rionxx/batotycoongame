@@ -202,6 +202,16 @@ button:disabled {
   font-size: 0.9rem;
 }
 
+.pig-field__area--3d {
+  height: 260px;
+  background: linear-gradient(#bfe3f7 0%, #d9ecc2 70%);
+}
+
+.pig-field__empty--3d {
+  pointer-events: none;
+  color: var(--color-text);
+}
+
 .pig-field__pig {
   position: absolute;
   transform: translate(-50%, -50%);
