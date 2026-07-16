@@ -121,123 +121,72 @@ button:disabled {
   transform: scale(0.94);
 }
 
-/* ---- 施設一覧 ---- */
+/* ---- 3Dワールド ---- */
 
-.building-list ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.building-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
+.world {
+  margin-top: 16px;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 10px;
+  border-radius: 12px;
+  padding: 10px;
 }
 
-.building-row__icon {
-  font-size: 1.6rem;
-}
-
-.building-row__info {
-  flex: 1;
-  min-width: 0;
-}
-
-.building-row__name {
-  font-weight: 700;
-}
-
-.building-row__level {
-  margin-left: 4px;
-  color: var(--color-text-sub);
-  font-weight: 400;
-  font-size: 0.9rem;
-}
-
-.building-row__effect {
-  font-size: 0.85rem;
-  color: var(--color-text-sub);
-}
-
-.building-row__upgrade {
-  padding: 8px 14px;
-  border: none;
-  border-radius: 8px;
-  background: var(--color-accent);
-  color: #fff;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-/* ---- 牧場フィールド ---- */
-
-.pig-field__chance {
-  font-size: 0.85rem;
-  font-weight: 400;
-  color: var(--color-text-sub);
-}
-
-.pig-field__area {
+.world__viewport {
   position: relative;
-  height: 180px;
+  height: min(58vh, 520px);
+  min-height: 320px;
   border-radius: 10px;
-  background: linear-gradient(#d9ecc2, #c6e3ab);
   overflow: hidden;
-}
-
-.pig-field__empty {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  margin: 0;
-  color: var(--color-text-sub);
-  font-size: 0.9rem;
-}
-
-.pig-field__area--3d {
-  height: 260px;
   background: linear-gradient(#bfe3f7 0%, #d9ecc2 70%);
 }
 
-.pig-field__empty--3d {
-  pointer-events: none;
-  color: var(--color-text);
+.world__viewport--loading {
+  display: grid;
+  place-items: center;
+  color: var(--color-text-sub);
 }
 
-.pig-field__pig {
+.world__hud {
   position: absolute;
-  transform: translate(-50%, -50%);
-  font-size: 2.4rem;
-  background: none;
-  border: none;
-  padding: 6px;
-  border-radius: 50%;
-  animation: pig-wiggle 0.8s ease-in-out infinite alternate;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 0.8rem;
+  color: var(--color-text);
+  pointer-events: none;
 }
 
-.pig-field__pig--rare {
-  filter: drop-shadow(0 0 6px var(--color-rare));
+.world__hud--controls {
+  top: 10px;
+  left: 10px;
 }
 
-.pig-field__pig--epic {
-  filter: drop-shadow(0 0 8px var(--color-epic));
+.world__hud--chance {
+  top: 10px;
+  right: 10px;
 }
 
-@keyframes pig-wiggle {
-  from {
-    transform: translate(-50%, -50%) rotate(-8deg);
-  }
-  to {
-    transform: translate(-50%, -50%) rotate(8deg);
-  }
+.world-prompt {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 22px;
+  border-radius: 12px;
+  background: rgba(40, 50, 30, 0.85);
+  color: #fff;
+  font-size: 0.9rem;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.world-prompt--ready {
+  background: rgba(47, 122, 62, 0.92);
+  box-shadow: 0 0 12px rgba(95, 191, 106, 0.6);
 }
 
 /* ---- 豚図鑑 ---- */
