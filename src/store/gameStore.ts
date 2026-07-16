@@ -28,10 +28,32 @@ import {
   spawnPig,
 } from '../logic/pigCollection'
 import type { Rng } from '../logic/pigCollection'
+import {
+  createInitialAchievements,
+  evaluateAchievements,
+  toProgress,
+} from '../logic/achievements'
 
 /** localStorageの保存キー。スキーマ変更時は persist の version を上げて migrate する */
 export const SAVE_KEY = 'batotycoon:save'
-export const SAVE_VERSION = 1
+export const SAVE_VERSION = 2
+
+/**
+ * 旧バージョンのセーブデータを現行スキーマへ変換する。
+ * v1→v2: 実績フィールドを追加し、その時点で条件を満たす実績は通知なしで解除済みにする。
+ */
+export function migrateSave(persisted: unknown, fromVersion: number): GameState {
+  const state = persisted as GameState
+  if (fromVersion < 2) {
+    const achievements = createInitialAchievements()
+    const now = Date.now()
+    for (const id of evaluateAchievements(achievements, toProgress(state))) {
+      achievements[id] = now
+    }
+    state.achievements = achievements
+  }
+  return state
+}
 
 /** 豚の抽選に使う乱数源。テストからは差し替え可能にする */
 let rng: Rng = Math.random
@@ -73,6 +95,7 @@ export function createInitialGameState(nowMs: number): GameState {
     pigCollection: createInitialCollection(),
     lastActiveAt: nowMs,
     lastSpawnCheckAt: nowMs,
+    achievements: createInitialAchievements(),
   }
 }
 
@@ -85,6 +108,7 @@ export const useGameStore = create<GameStore>()(
       activePig: null,
       offlineReport: null,
       completionCelebrated: false,
+      recentUnlocks: [],
 
       // ---- アクション ----
 
@@ -112,12 +136,33 @@ export const useGameStore = create<GameStore>()(
           }
         }
 
+        // 実績判定(1秒tickに集約。解除表示は最大1秒遅延する仕様)
+        const nextTotalEarned = clampCoins(state.totalCoinsEarned + earned)
+        const newlyUnlocked = evaluateAchievements(
+          state.achievements,
+          toProgress({
+            totalCoinsEarned: nextTotalEarned,
+            buildingLevels: state.buildingLevels,
+            pigCollection: state.pigCollection,
+          }),
+        )
+        const achievements = newlyUnlocked.length
+          ? { ...state.achievements }
+          : state.achievements
+        for (const id of newlyUnlocked) {
+          achievements[id] = nowMs
+        }
+
         set({
           coins: clampCoins(state.coins + earned),
-          totalCoinsEarned: clampCoins(state.totalCoinsEarned + earned),
+          totalCoinsEarned: nextTotalEarned,
           lastActiveAt: nowMs,
           lastSpawnCheckAt,
           activePig,
+          achievements,
+          recentUnlocks: newlyUnlocked.length
+            ? [...state.recentUnlocks, ...newlyUnlocked]
+            : state.recentUnlocks,
         })
       },
 
@@ -182,12 +227,17 @@ export const useGameStore = create<GameStore>()(
         set({ completionCelebrated: true })
       },
 
+      clearRecentUnlocks: () => {
+        set({ recentUnlocks: [] })
+      },
+
       resetGame: () => {
         set({
           ...createInitialGameState(Date.now()),
           activePig: null,
           offlineReport: null,
           completionCelebrated: false,
+          recentUnlocks: [],
         })
       },
     }),
@@ -206,7 +256,9 @@ export const useGameStore = create<GameStore>()(
         pigCollection: state.pigCollection,
         lastActiveAt: state.lastActiveAt,
         lastSpawnCheckAt: state.lastSpawnCheckAt,
+        achievements: state.achievements,
       }),
+      migrate: migrateSave,
       onRehydrateStorage: () => (state) => {
         // コンプ済みセーブの再ロードで達成モーダルが再表示されるのを防ぐ
         if (state && isCollectionComplete(state.pigCollection)) {

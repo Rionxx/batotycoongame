@@ -94,6 +94,53 @@ export interface OfflineReport {
   capped: boolean
 }
 
+/** 実績ID(全12種)。仕様は docs/requirements.md の実績テーブルを参照 */
+export type AchievementId =
+  | 'firstCoins'
+  | 'rich1'
+  | 'rich2'
+  | 'firstUpgrade'
+  | 'builder'
+  | 'tycoon'
+  | 'maxFeeding'
+  | 'maxSignboard'
+  | 'firstPig'
+  | 'pigHoarder'
+  | 'pigFriends'
+  | 'pigMaster'
+
+export const ACHIEVEMENT_IDS: readonly AchievementId[] = [
+  'firstCoins',
+  'rich1',
+  'rich2',
+  'firstUpgrade',
+  'builder',
+  'tycoon',
+  'maxFeeding',
+  'maxSignboard',
+  'firstPig',
+  'pigHoarder',
+  'pigFriends',
+  'pigMaster',
+]
+
+/** 実績の達成条件(宣言的定義。判定は logic/achievements.ts) */
+export type AchievementCondition =
+  | { type: 'totalCoinsEarned'; amount: number }
+  | { type: 'totalBuildingLevels'; level: number }
+  | { type: 'buildingLevel'; buildingId: BuildingId; level: number }
+  | { type: 'pigCaptures'; count: number }
+  | { type: 'pigSpecies'; count: number }
+  | { type: 'prestigeCount'; count: number }
+
+/** 実績1件のマスタ情報(カタログは constants.ts で定義) */
+export interface AchievementSpec {
+  id: AchievementId
+  name: string
+  description: string
+  condition: AchievementCondition
+}
+
 /** 永続化対象のコア状態 */
 export interface GameState {
   coins: number
@@ -107,6 +154,8 @@ export interface GameState {
   lastActiveAt: number
   /** 最後に豚の出現判定を行った時刻(エポックms) */
   lastSpawnCheckAt: number
+  /** 実績ID → 解除時刻(エポックms)。未解除は null */
+  achievements: Record<AchievementId, number | null>
 }
 
 /** 永続化しない一時状態(UI都合の状態もここ) */
@@ -117,6 +166,8 @@ export interface TransientState {
   offlineReport: OfflineReport | null
   /** 図鑑コンプリート達成モーダルの表示フラグ(1回だけ表示) */
   completionCelebrated: boolean
+  /** 直近で解除された実績(トースト表示用)。表示後にクリアする */
+  recentUnlocks: AchievementId[]
 }
 
 /** ストアのアクション群(実装はフェーズ3) */
@@ -135,6 +186,8 @@ export interface GameActions {
   dismissOfflineReport: () => void
   /** コンプリート達成モーダルを表示済みにする */
   markCompletionCelebrated: () => void
+  /** 実績解除トーストをクリアする */
+  clearRecentUnlocks: () => void
   /** セーブデータを全消去して初期状態に戻す */
   resetGame: () => void
 }

@@ -1,4 +1,5 @@
 import { useGameLoop } from './hooks/useGameLoop'
+import { AchievementPanel, AchievementToast } from './components/AchievementPanel'
 import { BuildingList } from './components/BuildingList'
 import { CompletionModal, OfflineReportModal, SettingsBar } from './components/Modals'
 import { PigCollection } from './components/PigCollection'
@@ -20,11 +21,13 @@ export default function App() {
         </div>
         <div className="app__column">
           <PigCollection />
+          <AchievementPanel />
         </div>
       </main>
       <SettingsBar />
       <OfflineReportModal />
       <CompletionModal />
+      <AchievementToast />
     </div>
   )
 }

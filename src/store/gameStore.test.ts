@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { OFFLINE_CAP_SECONDS } from '../logic/constants'
+import { createInitialAchievements } from '../logic/achievements'
 import {
   createInitialGameState,
+  migrateSave,
   setRngForTesting,
   useGameStore,
 } from './gameStore'
@@ -20,6 +22,7 @@ beforeEach(() => {
     activePig: null,
     offlineReport: null,
     completionCelebrated: false,
+    recentUnlocks: [],
   })
   setRngForTesting(Math.random)
 })
@@ -152,6 +155,59 @@ describe('applyOfflineProgress', () => {
   })
 })
 
+describe('実績', () => {
+  it('tickで条件を満たした実績が解除されトースト対象になる', () => {
+    useGameStore.setState({ totalCoinsEarned: 99 })
+    useGameStore.getState().tick(T0 + 1000) // +1コインで累計100到達
+    const state = useGameStore.getState()
+    expect(state.achievements.firstCoins).toBe(T0 + 1000)
+    expect(state.recentUnlocks).toContain('firstCoins')
+  })
+
+  it('解除済みの実績は再解除されない', () => {
+    useGameStore.setState({
+      totalCoinsEarned: 200,
+      achievements: { ...useGameStore.getState().achievements, firstCoins: 12345 },
+    })
+    useGameStore.getState().tick(T0 + 1000)
+    expect(useGameStore.getState().achievements.firstCoins).toBe(12345)
+    expect(useGameStore.getState().recentUnlocks).not.toContain('firstCoins')
+  })
+
+  it('clearRecentUnlocks でトースト対象が空になる(解除記録は残る)', () => {
+    useGameStore.setState({ totalCoinsEarned: 100 })
+    useGameStore.getState().tick(T0 + 1000)
+    useGameStore.getState().clearRecentUnlocks()
+    expect(useGameStore.getState().recentUnlocks).toEqual([])
+    expect(useGameStore.getState().achievements.firstCoins).not.toBeNull()
+  })
+})
+
+describe('migrateSave', () => {
+  it('v1セーブに実績フィールドが追加され、達成済み条件は通知なしで解除される', () => {
+    const v1 = createInitialGameState(T0) as unknown as Record<string, unknown>
+    delete v1.achievements // v1には実績フィールドがない
+    Object.assign(v1, {
+      totalCoinsEarned: 15_000,
+      buildingLevels: { feedingTrough: 30, pigPen: 15, market: 5, signboard: 0 },
+    })
+    const migrated = migrateSave(v1, 1)
+    expect(migrated.achievements.firstCoins).not.toBeNull()
+    expect(migrated.achievements.rich1).not.toBeNull() // 累計15,000 ≥ 10,000
+    expect(migrated.achievements.builder).not.toBeNull() // 合計50レベル
+    expect(migrated.achievements.rich2).toBeNull() // 未達成
+    expect(migrated.achievements.pigMaster).toBeNull()
+  })
+
+  it('現行バージョンのセーブはそのまま返す', () => {
+    const v2 = createInitialGameState(T0)
+    v2.achievements = createInitialAchievements()
+    v2.achievements.firstCoins = 777
+    const migrated = migrateSave(v2, 2)
+    expect(migrated.achievements.firstCoins).toBe(777)
+  })
+})
+
 describe('resetGame', () => {
   it('全状態が初期化される', () => {
     useGameStore.setState({ coins: 9999, buildingLevels: { feedingTrough: 5, pigPen: 3, market: 1, signboard: 2 } })
@@ -160,5 +216,6 @@ describe('resetGame', () => {
     expect(state.coins).toBe(0)
     expect(state.buildingLevels.feedingTrough).toBe(0)
     expect(state.pigCollection.pinky.count).toBe(0)
+    expect(state.achievements.firstCoins).toBeNull()
   })
 })
