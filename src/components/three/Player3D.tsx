@@ -2,7 +2,7 @@ import { useFrame } from '@react-three/fiber'
 import { useRef } from 'react'
 import type { MutableRefObject } from 'react'
 import { Group, Vector3 } from 'three'
-import { PLAYER_BOUND_X, PLAYER_BOUND_Z, PLAYER_SPEED } from './worldLayout'
+import { PLAYER_BOUND_X, PLAYER_BOUND_Z, PLAYER_SPEED, PLAYER_START } from './worldLayout'
 import { useKeyboard } from './useKeyboard'
 
 interface Player3DProps {
@@ -51,7 +51,7 @@ export function Player3D({ positionRef }: Player3DProps) {
   })
 
   return (
-    <group ref={groupRef} position={[0, 0, 3.5]}>
+    <group ref={groupRef} position={[PLAYER_START[0], 0, PLAYER_START[1]]}>
       {/* 体(オーバーオール) */}
       <mesh position={[0, 0.45, 0]}>
         <cylinderGeometry args={[0.28, 0.34, 0.7, 16]} />

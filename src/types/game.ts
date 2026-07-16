@@ -174,10 +174,20 @@ export interface GameState {
   prestige: PrestigeState
 }
 
+/** フィールドに出現中のコイン山(0〜1の相対座標)。永続化しない */
+export interface CoinPickupState {
+  x: number
+  y: number
+}
+
 /** 永続化しない一時状態(UI都合の状態もここ) */
 export interface TransientState {
   /** 出現中の豚。いなければ null(同時出現は1匹まで) */
   activePig: ActivePig | null
+  /** 出現中のコイン山。回収されると null になり、一定時間後に再出現する */
+  coinPickup: CoinPickupState | null
+  /** コイン山の再出現が許可される時刻(エポックms) */
+  coinPickupRespawnAt: number
   /** 復帰時に表示するオフライン精算結果。表示済みなら null */
   offlineReport: OfflineReport | null
   /** 図鑑コンプリート達成モーダルの表示フラグ(1回だけ表示) */
@@ -190,8 +200,8 @@ export interface TransientState {
 export interface GameActions {
   /** ゲーム時間を進める。1秒tickの本体(資源加算・豚出現判定・豚消滅) */
   tick: (nowMs: number) => void
-  /** 手動タップ(+1コイン) */
-  tapCoin: () => void
+  /** コイン山を回収する(現在レート×規定秒数分を獲得し、再出現タイマーを開始) */
+  collectCoinPickup: (nowMs: number) => void
   /** 施設を1レベル強化する(コイン不足・最大レベル時は何もしない) */
   upgradeBuilding: (id: BuildingId) => void
   /** 出現中の豚を捕獲する(新種なら図鑑登録、重複ならコイン変換) */

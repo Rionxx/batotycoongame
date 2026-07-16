@@ -41,6 +41,10 @@ body {
   margin-top: 16px;
 }
 
+.app__main--single {
+  grid-template-columns: 1fr;
+}
+
 .app__column {
   display: flex;
   flex-direction: column;
@@ -105,21 +109,6 @@ button:disabled {
   color: var(--color-accent);
 }
 
-.resource-display__tap {
-  margin-left: auto;
-  padding: 10px 18px;
-  border: none;
-  border-radius: 999px;
-  background: var(--color-coin);
-  color: #fff;
-  font-size: 1rem;
-  font-weight: 700;
-  transition: transform 0.05s;
-}
-
-.resource-display__tap:active {
-  transform: scale(0.94);
-}
 
 /* ---- 3Dワールド ---- */
 
@@ -187,6 +176,25 @@ button:disabled {
 .world-prompt--ready {
   background: rgba(47, 122, 62, 0.92);
   box-shadow: 0 0 12px rgba(95, 191, 106, 0.6);
+}
+
+/* ワールド内オーバーレイ(図鑑など)。近接中だけ右側に表示する */
+.world-overlay {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  width: min(360px, 55%);
+  overflow-y: auto;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.world-overlay section {
+  height: 100%;
+  overflow-y: auto;
+  border: none;
+  background: rgba(255, 255, 255, 0.94);
 }
 
 /* ---- 豚図鑑 ---- */
@@ -283,32 +291,6 @@ button:disabled {
 .modal__note {
   font-size: 0.8rem;
   color: var(--color-text-sub);
-}
-
-/* ---- 転生 ---- */
-
-.prestige-panel__medals {
-  font-size: 0.9rem;
-  font-weight: 400;
-  color: var(--color-coin);
-}
-
-.prestige-panel__info {
-  margin: 0 0 10px;
-  font-size: 0.9rem;
-  color: var(--color-text-sub);
-  line-height: 1.6;
-}
-
-.prestige-panel__button {
-  width: 100%;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #d9a514, #e8788a);
-  color: #fff;
-  font-weight: 700;
-  font-size: 0.95rem;
 }
 
 /* ---- 実績 ---- */

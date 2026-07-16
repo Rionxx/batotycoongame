@@ -4,9 +4,9 @@ import type { Group } from 'three'
 import { PIG_CATALOG } from '../../logic/constants'
 import { useGameStore } from '../../store/gameStore'
 import type { ActivePig, PigRarity } from '../../types/game'
-import { pigWorldPosition } from './worldLayout'
+import { fieldWorldPosition } from './worldLayout'
 
-const RARITY_BODY_COLOR: Record<PigRarity, string> = {
+export const RARITY_BODY_COLOR: Record<PigRarity, string> = {
   common: '#f2a0b5',
   rare: '#9ec4ef',
   epic: '#d5a3ea',
@@ -25,7 +25,7 @@ export function Pig3D({ pig }: { pig: ActivePig }) {
   const rarity = PIG_CATALOG[pig.speciesId].rarity
   const groupRef = useRef<Group>(null)
 
-  const [x, z] = pigWorldPosition(pig.x, pig.y)
+  const [x, z] = fieldWorldPosition(pig.x, pig.y)
 
   useFrame(({ clock }) => {
     const group = groupRef.current
