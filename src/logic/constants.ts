@@ -106,6 +106,14 @@ export const PIG_DUPLICATE_COIN_SECONDS: Record<PigRarity, number> = {
   epic: 600,
 }
 
+// ---- プレステージ(転生) ----
+
+/** メダル計算の除数: 獲得メダル = floor(√(周回コイン ÷ この値)) */
+export const PRESTIGE_MEDAL_DIVISOR = 100_000
+
+/** メダル1枚あたりの生成レートボーナス(+5%) */
+export const MEDAL_RATE_BONUS = 0.05
+
 // ---- 実績 ----
 
 /** 実績カタログ(バッジのみ・報酬なし)。仕様は docs/requirements.md */
@@ -181,6 +189,18 @@ export const ACHIEVEMENTS: Record<AchievementId, AchievementSpec> = {
     name: '図鑑コンプリート',
     description: '全12種の豚を集める',
     condition: { type: 'pigSpecies', count: 12 },
+  },
+  firstPrestige: {
+    id: 'firstPrestige',
+    name: 'はじめての転生',
+    description: 'はじめて転生する',
+    condition: { type: 'prestigeCount', count: 1 },
+  },
+  prestige5: {
+    id: 'prestige5',
+    name: '輪廻のぶた',
+    description: '5回転生する',
+    condition: { type: 'prestigeCount', count: 5 },
   },
 }
 

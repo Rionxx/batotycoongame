@@ -88,7 +88,20 @@ describe('evaluateAchievements', () => {
     ).not.toContain('firstCoins')
   })
 
-  it('全条件を満たすと全実績(prestige条件を除く)が解除される', () => {
+  it('転生回数の条件を判定する', () => {
+    const unlocked = createInitialAchievements()
+    expect(evaluateAchievements(unlocked, progress({ prestigeCount: 1 }))).toContain(
+      'firstPrestige',
+    )
+    expect(evaluateAchievements(unlocked, progress({ prestigeCount: 1 }))).not.toContain(
+      'prestige5',
+    )
+    expect(evaluateAchievements(unlocked, progress({ prestigeCount: 5 }))).toContain(
+      'prestige5',
+    )
+  })
+
+  it('全条件を満たすと全実績が解除される', () => {
     const col = emptyCollection()
     for (const id of PIG_SPECIES_IDS) {
       col[id] = { count: 3, firstCaughtAt: 0 }
@@ -99,6 +112,7 @@ describe('evaluateAchievements', () => {
         totalCoinsEarned: 1e9,
         buildingLevels: { feedingTrough: 100, pigPen: 100, market: 50, signboard: 12 },
         pigCollection: col,
+        prestigeCount: 5,
       }),
     )
     expect(result.length).toBe(ACHIEVEMENT_IDS.length)

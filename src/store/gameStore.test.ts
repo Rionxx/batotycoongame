@@ -208,6 +208,69 @@ describe('migrateSave', () => {
   })
 })
 
+describe('doPrestige', () => {
+  it('周回コイン10万未満では何も起きない', () => {
+    useGameStore.setState({ runCoinsEarned: 99_999, coins: 5000 })
+    useGameStore.getState().doPrestige(T0 + 1000)
+    expect(useGameStore.getState().coins).toBe(5000)
+    expect(useGameStore.getState().prestige.count).toBe(0)
+  })
+
+  it('転生でメダルを獲得し、進行がリセットされ図鑑と実績は残る', () => {
+    useGameStore.setState({
+      coins: 5000,
+      runCoinsEarned: 400_000, // → 2枚
+      totalCoinsEarned: 1_000_000,
+      buildingLevels: { feedingTrough: 30, pigPen: 10, market: 3, signboard: 2 },
+      pigCollection: {
+        ...useGameStore.getState().pigCollection,
+        pinky: { count: 1, firstCaughtAt: 123 },
+      },
+      achievements: { ...useGameStore.getState().achievements, firstCoins: 456 },
+    })
+    useGameStore.getState().doPrestige(T0 + 1000)
+    const state = useGameStore.getState()
+    expect(state.prestige).toEqual({ medals: 2, count: 1 })
+    expect(state.coins).toBe(0)
+    expect(state.runCoinsEarned).toBe(0)
+    expect(state.buildingLevels.feedingTrough).toBe(0)
+    expect(state.pigCollection.pinky.count).toBe(1)
+    expect(state.achievements.firstCoins).toBe(456)
+    expect(state.totalCoinsEarned).toBe(1_000_000)
+  })
+
+  it('メダルがレートに効く(2枚で+10%)し、次のtickで転生実績が解除される', () => {
+    useGameStore.setState({ runCoinsEarned: 400_000 })
+    useGameStore.getState().doPrestige(T0 + 1000)
+    useGameStore.getState().tick(T0 + 11_000) // 10秒 × 基本1/秒 × 1.1
+    const state = useGameStore.getState()
+    expect(state.coins).toBeCloseTo(11)
+    expect(state.achievements.firstPrestige).not.toBeNull()
+    expect(state.recentUnlocks).toContain('firstPrestige')
+  })
+})
+
+describe('migrateSave (v2→v3)', () => {
+  it('転生フィールドが追加され、周回コインは生涯累計で初期化される', () => {
+    const v2 = createInitialGameState(T0) as unknown as Record<string, unknown>
+    delete v2.prestige
+    delete v2.runCoinsEarned
+    const achievements = createInitialAchievements() as unknown as Record<
+      string,
+      number | null
+    >
+    delete achievements.firstPrestige // v2には転生実績が存在しない
+    delete achievements.prestige5
+    Object.assign(v2, { totalCoinsEarned: 50_000, achievements })
+
+    const migrated = migrateSave(v2, 2)
+    expect(migrated.prestige).toEqual({ medals: 0, count: 0 })
+    expect(migrated.runCoinsEarned).toBe(50_000)
+    expect(migrated.achievements.firstPrestige).toBeNull()
+    expect(migrated.achievements.prestige5).toBeNull()
+  })
+})
+
 describe('resetGame', () => {
   it('全状態が初期化される', () => {
     useGameStore.setState({ coins: 9999, buildingLevels: { feedingTrough: 5, pigPen: 3, market: 1, signboard: 2 } })
@@ -217,5 +280,11 @@ describe('resetGame', () => {
     expect(state.buildingLevels.feedingTrough).toBe(0)
     expect(state.pigCollection.pinky.count).toBe(0)
     expect(state.achievements.firstCoins).toBeNull()
+  })
+
+  it('転生状態(メダル)もリセットされる', () => {
+    useGameStore.setState({ prestige: { medals: 10, count: 3 } })
+    useGameStore.getState().resetGame()
+    expect(useGameStore.getState().prestige).toEqual({ medals: 0, count: 0 })
   })
 })

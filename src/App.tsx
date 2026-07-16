@@ -4,6 +4,7 @@ import { BuildingList } from './components/BuildingList'
 import { CompletionModal, OfflineReportModal, SettingsBar } from './components/Modals'
 import { PigCollection } from './components/PigCollection'
 import { PigField } from './components/PigField'
+import { PrestigePanel } from './components/PrestigePanel'
 import { ResourceDisplay } from './components/ResourceDisplay'
 import './App.css'
 
@@ -18,6 +19,7 @@ export default function App() {
         <div className="app__column">
           <PigField />
           <BuildingList />
+          <PrestigePanel />
         </div>
         <div className="app__column">
           <PigCollection />

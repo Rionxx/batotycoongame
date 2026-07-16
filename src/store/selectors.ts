@@ -11,11 +11,14 @@ import {
   canUpgrade,
 } from '../logic/upgrade'
 import { isCollectionComplete } from '../logic/pigCollection'
+import { calculateMedalsGain, canPrestige, medalMultiplier } from '../logic/prestige'
 import type { BuildingId } from '../types/game'
 
 /** 現在の生成レート(コイン/秒) */
 export function useCoinsPerSecond(): number {
-  return useGameStore((s) => calculateCoinsPerSecond(s.buildingLevels, s.pigCollection))
+  return useGameStore((s) =>
+    calculateCoinsPerSecond(s.buildingLevels, s.pigCollection, s.prestige.medals),
+  )
 }
 
 /** 豚コレクションによる生成ボーナス(0.38 = +38%) */
@@ -48,4 +51,19 @@ export function useCaughtSpeciesCount(): number {
   return useGameStore(
     (s) => Object.values(s.pigCollection).filter((e) => e.count > 0).length,
   )
+}
+
+/** いま転生した場合に獲得できるメダル数 */
+export function useMedalsGain(): number {
+  return useGameStore((s) => calculateMedalsGain(s.runCoinsEarned))
+}
+
+/** 転生ボタンを押せるか */
+export function useCanPrestige(): boolean {
+  return useGameStore((s) => canPrestige(s.runCoinsEarned))
+}
+
+/** メダルによる現在のレート倍率(1.15 = +15%) */
+export function useMedalMultiplier(): number {
+  return useGameStore((s) => medalMultiplier(s.prestige.medals))
 }

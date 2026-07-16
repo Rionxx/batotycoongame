@@ -108,6 +108,8 @@ export type AchievementId =
   | 'pigHoarder'
   | 'pigFriends'
   | 'pigMaster'
+  | 'firstPrestige'
+  | 'prestige5'
 
 export const ACHIEVEMENT_IDS: readonly AchievementId[] = [
   'firstCoins',
@@ -122,7 +124,17 @@ export const ACHIEVEMENT_IDS: readonly AchievementId[] = [
   'pigHoarder',
   'pigFriends',
   'pigMaster',
+  'firstPrestige',
+  'prestige5',
 ]
+
+/** 転生(プレステージ)の永続状態 */
+export interface PrestigeState {
+  /** 金の豚メダルの総数(1枚 = レート+5%) */
+  medals: number
+  /** 転生回数 */
+  count: number
+}
 
 /** 実績の達成条件(宣言的定義。判定は logic/achievements.ts) */
 export type AchievementCondition =
@@ -144,8 +156,10 @@ export interface AchievementSpec {
 /** 永続化対象のコア状態 */
 export interface GameState {
   coins: number
-  /** 累計獲得コイン(バランス調整・統計用) */
+  /** 生涯の累計獲得コイン(実績・統計用。転生でもリセットしない) */
   totalCoinsEarned: number
+  /** 今回の周回で稼いだ累計コイン(転生メダルの計算用。転生でリセット) */
+  runCoinsEarned: number
   /** 施設ID → 現在レベル(0 = 未購入相当) */
   buildingLevels: Record<BuildingId, number>
   /** 図鑑: 全12種ぶんを常にフルで持つ(未捕獲は count: 0) */
@@ -156,6 +170,8 @@ export interface GameState {
   lastSpawnCheckAt: number
   /** 実績ID → 解除時刻(エポックms)。未解除は null */
   achievements: Record<AchievementId, number | null>
+  /** 転生の状態 */
+  prestige: PrestigeState
 }
 
 /** 永続化しない一時状態(UI都合の状態もここ) */
@@ -188,6 +204,8 @@ export interface GameActions {
   markCompletionCelebrated: () => void
   /** 実績解除トーストをクリアする */
   clearRecentUnlocks: () => void
+  /** 転生を実行する(条件未達なら何もしない) */
+  doPrestige: (nowMs: number) => void
   /** セーブデータを全消去して初期状態に戻す */
   resetGame: () => void
 }
