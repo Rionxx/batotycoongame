@@ -30,6 +30,7 @@
 | 6 | 実績システム(拡張) | `phase-6-achievements` | `src/logic/achievements.ts` + テスト、実績UI |
 | 7 | プレステージ(拡張) | `phase-7-prestige` | `src/logic/prestige.ts` + テスト、転生UI |
 | 8 | 3D化(拡張) | `phase-8-3d-view` | React Three Fiberによる牧場ビューの3D差し替え |
+| 9 | 3Dワールド化(拡張) | `phase-9-3d-world` | キャラクター操作型の3Dワールド(Robloxタイクーン風) |
 
 フェーズ6〜8は2026-07-17にユーザーの依頼で追加した拡張フェーズ(フェーズ5承認後のスコープ追加)。
 フェーズ2以降の承認ゲートはユーザーの明示的な指示(2026-07-15)により免除され、自律進行している。
