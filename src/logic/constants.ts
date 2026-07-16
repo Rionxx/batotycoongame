@@ -3,7 +3,15 @@
  * バランス調整(フェーズ5)はこのファイルの変更だけで完結させる。
  * 出典: docs/requirements.md
  */
-import type { BuildingId, BuildingSpec, PigRarity, PigSpecies, PigSpeciesId } from '../types/game'
+import type {
+  AchievementId,
+  AchievementSpec,
+  BuildingId,
+  BuildingSpec,
+  PigRarity,
+  PigSpecies,
+  PigSpeciesId,
+} from '../types/game'
 
 // ---- 資源 ----
 
@@ -96,6 +104,84 @@ export const PIG_DUPLICATE_COIN_SECONDS: Record<PigRarity, number> = {
   common: 30,
   rare: 120,
   epic: 600,
+}
+
+// ---- 実績 ----
+
+/** 実績カタログ(バッジのみ・報酬なし)。仕様は docs/requirements.md */
+export const ACHIEVEMENTS: Record<AchievementId, AchievementSpec> = {
+  firstCoins: {
+    id: 'firstCoins',
+    name: 'はじめてのおこづかい',
+    description: '累計100コインを稼ぐ',
+    condition: { type: 'totalCoinsEarned', amount: 100 },
+  },
+  rich1: {
+    id: 'rich1',
+    name: '小金持ち',
+    description: '累計10,000コインを稼ぐ',
+    condition: { type: 'totalCoinsEarned', amount: 10_000 },
+  },
+  rich2: {
+    id: 'rich2',
+    name: '豚舎の大富豪',
+    description: '累計1,000,000コインを稼ぐ',
+    condition: { type: 'totalCoinsEarned', amount: 1_000_000 },
+  },
+  firstUpgrade: {
+    id: 'firstUpgrade',
+    name: 'はじめての強化',
+    description: 'いずれかの施設を強化する',
+    condition: { type: 'totalBuildingLevels', level: 1 },
+  },
+  builder: {
+    id: 'builder',
+    name: '拡張工事中',
+    description: '施設レベルの合計が50に到達する',
+    condition: { type: 'totalBuildingLevels', level: 50 },
+  },
+  tycoon: {
+    id: 'tycoon',
+    name: 'タイクーンの風格',
+    description: '施設レベルの合計が150に到達する',
+    condition: { type: 'totalBuildingLevels', level: 150 },
+  },
+  maxFeeding: {
+    id: 'maxFeeding',
+    name: 'えさ場の極み',
+    description: 'えさ場を最大レベルにする',
+    condition: { type: 'buildingLevel', buildingId: 'feedingTrough', level: 100 },
+  },
+  maxSignboard: {
+    id: 'maxSignboard',
+    name: '広告王',
+    description: '看板を最大レベルにする',
+    condition: { type: 'buildingLevel', buildingId: 'signboard', level: 12 },
+  },
+  firstPig: {
+    id: 'firstPig',
+    name: 'はじめまして、ぶた',
+    description: 'はじめて豚を捕獲する',
+    condition: { type: 'pigCaptures', count: 1 },
+  },
+  pigHoarder: {
+    id: 'pigHoarder',
+    name: '捕獲マニア',
+    description: '通算30回豚を捕獲する',
+    condition: { type: 'pigCaptures', count: 30 },
+  },
+  pigFriends: {
+    id: 'pigFriends',
+    name: '豚と友達',
+    description: '図鑑に6種登録する',
+    condition: { type: 'pigSpecies', count: 6 },
+  },
+  pigMaster: {
+    id: 'pigMaster',
+    name: '図鑑コンプリート',
+    description: '全12種の豚を集める',
+    condition: { type: 'pigSpecies', count: 12 },
+  },
 }
 
 /** 豚カタログ(全12種: コモン6・レア4・エピック2) */
