@@ -326,6 +326,32 @@ button:disabled {
   color: var(--color-text-sub);
 }
 
+/* ---- 転生 ---- */
+
+.prestige-panel__medals {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--color-coin);
+}
+
+.prestige-panel__info {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+  color: var(--color-text-sub);
+  line-height: 1.6;
+}
+
+.prestige-panel__button {
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #d9a514, #e8788a);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
 /* ---- 実績 ---- */
 
 .achievement-panel__progress {
