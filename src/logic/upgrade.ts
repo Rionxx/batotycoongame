@@ -11,6 +11,7 @@ import {
   PIG_SPAWN_BASE_CHANCE,
   PIG_SPAWN_MAX_CHANCE,
 } from './constants'
+import { medalMultiplier } from './prestige'
 
 /**
  * レベル level → level+1 のアップグレードコスト(コイン)。
@@ -42,11 +43,13 @@ export function calculatePigBonus(pigCollection: GameState['pigCollection']): nu
 
 /**
  * 現在の生成レート(コイン/秒)。
- * rate = (基本 + えさ場加算 + 豚小屋加算) × 市場倍率 × (1 + 豚ボーナス)
+ * rate = (基本 + えさ場加算 + 豚小屋加算) × 市場倍率 × (1 + 豚ボーナス) × (1 + 0.05×メダル)
+ * medals はフェーズ7(プレステージ)で追加。旧呼び出しのため省略時は0
  */
 export function calculateCoinsPerSecond(
   buildingLevels: GameState['buildingLevels'],
   pigCollection: GameState['pigCollection'],
+  medals = 0,
 ): number {
   let flat = BASE_COINS_PER_SECOND
   let multiplier = 1
@@ -58,7 +61,9 @@ export function calculateCoinsPerSecond(
       multiplier *= 1 + spec.effectPerLevel * level
     }
   }
-  return flat * multiplier * (1 + calculatePigBonus(pigCollection))
+  return (
+    flat * multiplier * (1 + calculatePigBonus(pigCollection)) * medalMultiplier(medals)
+  )
 }
 
 /** 現在の豚出現確率(基本 + 看板加算、上限クリップ) */

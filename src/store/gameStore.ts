@@ -7,7 +7,8 @@ import type {
   PigCollectionEntry,
   PigSpeciesId,
 } from '../types/game'
-import { BUILDING_IDS, PIG_SPECIES_IDS } from '../types/game'
+import { ACHIEVEMENT_IDS, BUILDING_IDS, PIG_SPECIES_IDS } from '../types/game'
+import { applyPrestige, canPrestige } from '../logic/prestige'
 import {
   COINS_PER_TAP,
   OFFLINE_REPORT_MIN_SECONDS,
@@ -36,11 +37,13 @@ import {
 
 /** localStorageの保存キー。スキーマ変更時は persist の version を上げて migrate する */
 export const SAVE_KEY = 'batotycoon:save'
-export const SAVE_VERSION = 2
+export const SAVE_VERSION = 3
 
 /**
  * 旧バージョンのセーブデータを現行スキーマへ変換する。
  * v1→v2: 実績フィールドを追加し、その時点で条件を満たす実績は通知なしで解除済みにする。
+ * v2→v3: 転生フィールドを追加。周回コインは生涯累計と同値で初期化し、
+ *         v2以前に存在しない実績ID(転生系)を未解除で補完する。
  */
 export function migrateSave(persisted: unknown, fromVersion: number): GameState {
   const state = persisted as GameState
@@ -51,6 +54,15 @@ export function migrateSave(persisted: unknown, fromVersion: number): GameState 
       achievements[id] = now
     }
     state.achievements = achievements
+  }
+  if (fromVersion < 3) {
+    state.prestige = { medals: 0, count: 0 }
+    state.runCoinsEarned = state.totalCoinsEarned ?? 0
+    for (const id of ACHIEVEMENT_IDS) {
+      if (state.achievements[id] === undefined) {
+        state.achievements[id] = null
+      }
+    }
   }
   return state
 }
@@ -91,6 +103,8 @@ export function createInitialGameState(nowMs: number): GameState {
   return {
     coins: 0,
     totalCoinsEarned: 0,
+    runCoinsEarned: 0,
+    prestige: { medals: 0, count: 0 },
     buildingLevels: createInitialBuildingLevels(),
     pigCollection: createInitialCollection(),
     lastActiveAt: nowMs,
@@ -115,7 +129,11 @@ export const useGameStore = create<GameStore>()(
       tick: (nowMs: number) => {
         const state = get()
         const elapsedSeconds = (nowMs - state.lastActiveAt) / 1000
-        const rate = calculateCoinsPerSecond(state.buildingLevels, state.pigCollection)
+        const rate = calculateCoinsPerSecond(
+          state.buildingLevels,
+          state.pigCollection,
+          state.prestige.medals,
+        )
         const earned = calculateEarnedCoins(rate, elapsedSeconds)
 
         // 消滅判定
@@ -140,11 +158,14 @@ export const useGameStore = create<GameStore>()(
         const nextTotalEarned = clampCoins(state.totalCoinsEarned + earned)
         const newlyUnlocked = evaluateAchievements(
           state.achievements,
-          toProgress({
-            totalCoinsEarned: nextTotalEarned,
-            buildingLevels: state.buildingLevels,
-            pigCollection: state.pigCollection,
-          }),
+          toProgress(
+            {
+              totalCoinsEarned: nextTotalEarned,
+              buildingLevels: state.buildingLevels,
+              pigCollection: state.pigCollection,
+            },
+            state.prestige.count,
+          ),
         )
         const achievements = newlyUnlocked.length
           ? { ...state.achievements }
@@ -156,6 +177,7 @@ export const useGameStore = create<GameStore>()(
         set({
           coins: clampCoins(state.coins + earned),
           totalCoinsEarned: nextTotalEarned,
+          runCoinsEarned: clampCoins(state.runCoinsEarned + earned),
           lastActiveAt: nowMs,
           lastSpawnCheckAt,
           activePig,
@@ -171,6 +193,7 @@ export const useGameStore = create<GameStore>()(
         set({
           coins: clampCoins(state.coins + COINS_PER_TAP),
           totalCoinsEarned: clampCoins(state.totalCoinsEarned + COINS_PER_TAP),
+          runCoinsEarned: clampCoins(state.runCoinsEarned + COINS_PER_TAP),
         })
       },
 
@@ -190,7 +213,11 @@ export const useGameStore = create<GameStore>()(
         const state = get()
         const pig = state.activePig
         if (pig === null) return
-        const rate = calculateCoinsPerSecond(state.buildingLevels, state.pigCollection)
+        const rate = calculateCoinsPerSecond(
+          state.buildingLevels,
+          state.pigCollection,
+          state.prestige.medals,
+        )
         const result = resolveCapture(
           state.pigCollection,
           pig.speciesId,
@@ -202,16 +229,22 @@ export const useGameStore = create<GameStore>()(
           pigCollection: result.pigCollection,
           coins: clampCoins(state.coins + result.coinsAwarded),
           totalCoinsEarned: clampCoins(state.totalCoinsEarned + result.coinsAwarded),
+          runCoinsEarned: clampCoins(state.runCoinsEarned + result.coinsAwarded),
         })
       },
 
       applyOfflineProgress: (nowMs: number) => {
         const state = get()
-        const rate = calculateCoinsPerSecond(state.buildingLevels, state.pigCollection)
+        const rate = calculateCoinsPerSecond(
+          state.buildingLevels,
+          state.pigCollection,
+          state.prestige.medals,
+        )
         const report = calculateOfflineProgress(state.lastActiveAt, nowMs, rate)
         set({
           coins: clampCoins(state.coins + report.coinsEarned),
           totalCoinsEarned: clampCoins(state.totalCoinsEarned + report.coinsEarned),
+          runCoinsEarned: clampCoins(state.runCoinsEarned + report.coinsEarned),
           lastActiveAt: nowMs,
           lastSpawnCheckAt: nowMs,
           offlineReport:
@@ -229,6 +262,16 @@ export const useGameStore = create<GameStore>()(
 
       clearRecentUnlocks: () => {
         set({ recentUnlocks: [] })
+      },
+
+      doPrestige: (nowMs: number) => {
+        const state = get()
+        if (!canPrestige(state.runCoinsEarned)) return
+        set({
+          ...applyPrestige(state, nowMs),
+          activePig: null,
+          offlineReport: null,
+        })
       },
 
       resetGame: () => {
@@ -252,6 +295,8 @@ export const useGameStore = create<GameStore>()(
       partialize: (state): GameState => ({
         coins: state.coins,
         totalCoinsEarned: state.totalCoinsEarned,
+        runCoinsEarned: state.runCoinsEarned,
+        prestige: state.prestige,
         buildingLevels: state.buildingLevels,
         pigCollection: state.pigCollection,
         lastActiveAt: state.lastActiveAt,
