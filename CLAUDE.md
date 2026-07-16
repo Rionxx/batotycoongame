@@ -9,7 +9,7 @@
 - 自動的に集まる資源(コイン)を核とした放置ゲーム的な収集ループ
 - 施設の強化(コストと効果が段階的に上昇)
 - 豚(コレクションアイテム)を集める要素
-- UIは2D(React)。3D化は将来の拡張候補であり、今回のスコープには含めない
+- UIは2D(React)を基本とする。牧場ビューの3D化はフェーズ8(拡張)で実施
 
 **技術スタック**: React + TypeScript + Vite + Zustand + Vitest
 
@@ -27,6 +27,12 @@
 | 3 | コアロジック実装 | `phase-3-core-logic` | `src/logic/` + テスト一式 |
 | 4 | UI実装(2D) | `phase-4-ui-implementation` | `src/components/` |
 | 5 | テスト・バランス調整 | `phase-5-testing-balance` | 調整済みパラメータ、既知課題一覧 |
+| 6 | 実績システム(拡張) | `phase-6-achievements` | `src/logic/achievements.ts` + テスト、実績UI |
+| 7 | プレステージ(拡張) | `phase-7-prestige` | `src/logic/prestige.ts` + テスト、転生UI |
+| 8 | 3D化(拡張) | `phase-8-3d-view` | React Three Fiberによる牧場ビューの3D差し替え |
+
+フェーズ6〜8は2026-07-17にユーザーの依頼で追加した拡張フェーズ(フェーズ5承認後のスコープ追加)。
+フェーズ2以降の承認ゲートはユーザーの明示的な指示(2026-07-15)により免除され、自律進行している。
 
 各フェーズの詳細な進め方・完了条件・Gitアクションは `.claude/skills/phase-N-xxx/SKILL.md` を参照。
 
@@ -44,8 +50,8 @@
 
 - フェーズごとに `phase/N-slug` ブランチを切る(例: `phase/1-requirements`)
 - 意味のある単位でこまめにコミット・こまめにプッシュする(フェーズ完了までためない)
-- フェーズ承認後に `main` へマージし、次フェーズのブランチを作る
-- `main` への直接pushや、承認前のマージは行わない
+- フェーズ完了後に `master` へマージし、次フェーズのブランチを作る(メインブランチは `main` ではなく `master`)
+- `master` への直接pushや、フェーズ途中のマージは行わない
 
 ## コーディング規約
 
