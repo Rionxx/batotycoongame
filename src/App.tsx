@@ -25,7 +25,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <h1 className="app__title">🐷 ぶたタイクーン</h1>
+      <h1 className="app__title">🐷 マゾ豚タイクーン</h1>
       <ResourceDisplay />
       <Suspense fallback={<WorldLoading />}>
         <World3D />
