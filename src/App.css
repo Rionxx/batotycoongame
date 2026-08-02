@@ -20,6 +20,9 @@ body {
   margin: 0;
   background: var(--color-bg);
   color: var(--color-text);
+  /* スマホでの引っ張り更新・意図しない文字サイズ調整を抑える */
+  overscroll-behavior-y: contain;
+  -webkit-text-size-adjust: 100%;
 }
 
 .app {
@@ -195,6 +198,182 @@ button:disabled {
   overflow-y: auto;
   border: none;
   background: rgba(255, 255, 255, 0.94);
+}
+
+/* ---- タッチ操作UI(フェーズ11) ---- */
+
+/* 3Dビューのドラッグでページがスクロール・ズームしないようにする */
+.world__viewport canvas {
+  touch-action: none;
+}
+
+.touch-stick {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(2px);
+  touch-action: none;
+  display: grid;
+  place-items: center;
+  z-index: 5;
+}
+
+.touch-stick__knob {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(61, 74, 53, 0.75);
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+}
+
+.touch-action {
+  position: absolute;
+  right: 16px;
+  bottom: 24px;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  background: rgba(120, 128, 115, 0.85);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-weight: 700;
+  touch-action: none;
+  z-index: 5;
+}
+
+.touch-action--ready {
+  background: rgba(47, 122, 62, 0.92);
+  box-shadow: 0 0 16px rgba(95, 191, 106, 0.7);
+}
+
+.touch-action__label {
+  font-size: 1.05rem;
+}
+
+.touch-action__sub {
+  font-size: 0.7rem;
+  font-weight: 400;
+  opacity: 0.9;
+}
+
+/* ---- スマホ・タブレット向け調整 ---- */
+
+@media (max-width: 720px) {
+  .app {
+    padding: 10px;
+  }
+
+  .app__title {
+    font-size: 1.25rem;
+    margin-bottom: 8px;
+  }
+
+  .world {
+    padding: 6px;
+  }
+
+  /* 縦画面ではワールドの高さを広めに確保する */
+  .world__viewport {
+    height: min(62vh, 560px);
+    /* iOSのアドレスバー伸縮に追従する単位(未対応ブラウザは上のvhを使う) */
+    height: min(62dvh, 560px);
+    min-height: 300px;
+  }
+
+  .world__hud {
+    font-size: 0.68rem;
+    padding: 5px 9px;
+    max-width: calc(100% - 20px);
+  }
+
+  .world__hud--controls {
+    top: 6px;
+    left: 6px;
+    right: 6px;
+  }
+
+  /* 出現率はコントロール表示の下に回り込ませる */
+  .world__hud--chance {
+    top: 38px;
+    right: 6px;
+  }
+
+  .world-prompt {
+    bottom: 8px;
+    font-size: 0.8rem;
+    padding: 8px 14px;
+    max-width: calc(100% - 16px);
+    white-space: normal;
+    text-align: center;
+  }
+
+  /* 図鑑オーバーレイはスティックとボタンに被らないよう上寄せの全幅にする */
+  .world-overlay {
+    top: 60px;
+    left: 8px;
+    right: 8px;
+    bottom: 150px;
+    width: auto;
+  }
+
+  .touch-stick {
+    width: 116px;
+    height: 116px;
+    left: 10px;
+    bottom: 10px;
+  }
+
+  .touch-action {
+    width: 86px;
+    height: 86px;
+    right: 10px;
+    bottom: 18px;
+  }
+
+  .resource-display {
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .resource-display__coins {
+    font-size: 1.35rem;
+  }
+
+  .pig-collection__grid {
+    grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+  }
+}
+
+/* 横向きスマホ: 画面が低いのでワールドを画面いっぱいに使う */
+@media (max-height: 500px) and (orientation: landscape) {
+  /* 見出しは視覚的にのみ隠す(スクリーンリーダーには残す) */
+  .app__title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .world__viewport {
+    height: 78vh;
+    height: 78dvh;
+    min-height: 240px;
+  }
 }
 
 /* ---- 豚図鑑 ---- */

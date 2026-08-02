@@ -14,8 +14,12 @@ import {
 } from '../../store/selectors'
 import type { BuildingId } from '../../types/game'
 import { BUILDING_IDS } from '../../types/game'
+import { useIsCoarsePointer } from '../../hooks/useIsCoarsePointer'
 import { formatCoins, formatPercent } from '../format'
 import { PigCollection } from '../PigCollection'
+import { TouchActionButton, VirtualStick } from './TouchControls'
+import { ZERO_MOVE } from './movement'
+import type { MoveVector } from './movement'
 import { Buildings3D } from './Buildings3D'
 import { CoinPickup3D } from './CoinPickup3D'
 import { Decorations3D } from './Decorations3D'
@@ -153,7 +157,7 @@ function FieldItems() {
 }
 
 /** 施設接近時の強化プロンプト */
-function UpgradePrompt({ id }: { id: BuildingId }) {
+function UpgradePrompt({ id, isTouch }: { id: BuildingId; isTouch: boolean }) {
   const spec = BUILDINGS[id]
   const level = useGameStore((s) => s.buildingLevels[id])
   const cost = useUpgradeCost(id)
@@ -169,7 +173,11 @@ function UpgradePrompt({ id }: { id: BuildingId }) {
       ) : (
         <span>
           強化 🪙 {formatCoins(cost)} —{' '}
-          {affordable ? '[E] または クリックで強化!' : 'コインが足りません'}
+          {affordable
+            ? isTouch
+              ? 'ボタン または タップで強化!'
+              : '[E] または クリックで強化!'
+            : 'コインが足りません'}
         </span>
       )}
     </div>
@@ -177,7 +185,7 @@ function UpgradePrompt({ id }: { id: BuildingId }) {
 }
 
 /** 転生の祠接近時のプロンプト */
-function PrestigePrompt() {
+function PrestigePrompt({ isTouch }: { isTouch: boolean }) {
   const prestige = useGameStore((s) => s.prestige)
   const runCoinsEarned = useGameStore((s) => s.runCoinsEarned)
   const gain = useMedalsGain()
@@ -191,7 +199,9 @@ function PrestigePrompt() {
       </strong>
       <span>この周回のコイン: 🪙 {formatCoins(runCoinsEarned)}</span>
       {ready ? (
-        <span>[E] で転生して 🥇{gain}枚 獲得(+{gain * 5}% 永続)</span>
+        <span>
+          {isTouch ? 'ボタン' : '[E]'} で転生して 🥇{gain}枚 獲得(+{gain * 5}% 永続)
+        </span>
       ) : (
         <span>🪙 {formatCoins(PRESTIGE_MEDAL_DIVISOR)} 稼ぐと転生できます</span>
       )}
@@ -199,30 +209,62 @@ function PrestigePrompt() {
   )
 }
 
+/** 施設用のタッチアクションボタン(強化の可否をボタンの色に反映する) */
+function BuildingActionButton({ id, onPress }: { id: BuildingId; onPress: () => void }) {
+  const affordable = useCanUpgrade(id)
+  return (
+    <TouchActionButton
+      label="強化"
+      sublabel={BUILDINGS[id].name}
+      enabled={affordable}
+      onPress={onPress}
+    />
+  )
+}
+
+/** 転生用のタッチアクションボタン */
+function PrestigeActionButton({ onPress }: { onPress: () => void }) {
+  const ready = useCanPrestige()
+  const gain = useMedalsGain()
+  return (
+    <TouchActionButton
+      label="転生"
+      sublabel={ready ? `🥇${gain}枚` : '未達成'}
+      enabled={ready}
+      onPress={onPress}
+    />
+  )
+}
+
 /** キャラクター操作型の3Dワールド(Robloxタイクーン風) */
 export function World3D() {
   const playerPos = useRef(new Vector3(0, 0, 6))
+  const stickRef = useRef<MoveVector>({ ...ZERO_MOVE })
   const [near, setNear] = useState<WorldInteractableId | null>(null)
   const spawnChance = usePigSpawnChance()
   const upgradeBuilding = useGameStore((s) => s.upgradeBuilding)
+  const isTouch = useIsCoarsePointer()
 
   const handleNearChange = useCallback((id: WorldInteractableId | null) => {
     setNear(id)
   }, [])
 
-  // Eキー: 施設の近くなら強化、祠の近くなら転生
+  /** 近接対象へのアクション(Eキーとタッチボタンで共用) */
+  const performAction = useCallback(() => {
+    if (near === 'prestige') {
+      confirmAndPrestige()
+    } else if (near !== null && near !== 'penSign') {
+      upgradeBuilding(near)
+    }
+  }, [near, upgradeBuilding])
+
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== 'e' && e.key !== 'E') return
-      if (near === 'prestige') {
-        confirmAndPrestige()
-      } else if (near && near !== 'penSign') {
-        upgradeBuilding(near)
-      }
+      if (e.key === 'e' || e.key === 'E') performAction()
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [near, upgradeBuilding])
+  }, [performAction])
 
   const isBuilding = near !== null && (BUILDING_IDS as readonly string[]).includes(near)
 
@@ -238,24 +280,37 @@ export function World3D() {
           <PigPen3D />
           <PrestigeShrine3D />
           <FieldItems />
-          <Player3D positionRef={playerPos} />
+          <Player3D positionRef={playerPos} stickRef={stickRef} />
           <ProximitySensor playerPos={playerPos} onNearChange={handleNearChange} />
         </Canvas>
 
         {/* HUDオーバーレイ */}
         <div className="world__hud world__hud--controls">
-          🚶 WASD / 矢印キー ・ 🐷 触れて捕獲 ・ 🪙 コイン山に触れて回収 ・ [E] 強化 / 転生
+          {isTouch
+            ? '🕹️ スティックで移動 ・ 🐷🪙 触れて回収 ・ 施設に近づいてボタン'
+            : '🚶 WASD / 矢印キー ・ 🐷 触れて捕獲 ・ 🪙 コイン山に触れて回収 ・ [E] 強化 / 転生'}
         </div>
         <div className="world__hud world__hud--chance">
           豚の出現率 {formatPercent(spawnChance)} / 30秒
         </div>
 
-        {isBuilding && <UpgradePrompt id={near as BuildingId} />}
-        {near === 'prestige' && <PrestigePrompt />}
+        {isBuilding && <UpgradePrompt id={near as BuildingId} isTouch={isTouch} />}
+        {near === 'prestige' && <PrestigePrompt isTouch={isTouch} />}
         {near === 'penSign' && (
           <div className="world-overlay">
             <PigCollection />
           </div>
+        )}
+
+        {/* タッチ操作UI(指での操作が主入力のときだけ表示する) */}
+        {isTouch && (
+          <>
+            <VirtualStick moveRef={stickRef} />
+            {isBuilding && (
+              <BuildingActionButton id={near as BuildingId} onPress={performAction} />
+            )}
+            {near === 'prestige' && <PrestigeActionButton onPress={performAction} />}
+          </>
         )}
       </div>
     </section>

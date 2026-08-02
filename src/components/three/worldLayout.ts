@@ -67,3 +67,21 @@ export const COIN_PICKUP_DISTANCE = 1.1
 export function fieldWorldPosition(relX: number, relY: number): [number, number] {
   return [relX * 14 - 5, relY * 10 - 5]
 }
+
+/** カメラ距離の倍率が最大になるアスペクト比(これ以下は一律で最大) */
+const NARROW_ASPECT = 0.6
+/** カメラ距離の倍率が等倍になるアスペクト比(これ以上は一律で1) */
+const WIDE_ASPECT = 1.5
+/** 縦長画面での最大倍率 */
+const MAX_DISTANCE_SCALE = 1.6
+
+/**
+ * アスペクト比に応じた追従カメラの距離倍率。
+ * 縦長(スマホ)は水平方向の視野が狭くなるため、カメラを引いて周囲を見せる。
+ */
+export function cameraDistanceScale(aspect: number): number {
+  if (!Number.isFinite(aspect) || aspect <= NARROW_ASPECT) return MAX_DISTANCE_SCALE
+  if (aspect >= WIDE_ASPECT) return 1
+  const ratio = (aspect - NARROW_ASPECT) / (WIDE_ASPECT - NARROW_ASPECT)
+  return MAX_DISTANCE_SCALE - ratio * (MAX_DISTANCE_SCALE - 1)
+}
